@@ -65,13 +65,12 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf;
 
 		$error = 0; // Error counter
-		$myvalue = 'test'; // A result value
 
 		/*print_r($parameters);
 		echo "action: " . $action;
 		print_r($object);*/
 		$current_context = explode(':', $parameters['context']);
-		if (in_array('invoicecard', $current_context) && $action=='confirm_editthirdparty')
+		if ((in_array('invoicecard', $current_context) || in_array('ordercard', $current_context)) && $action=='confirm_editthirdparty')
 		{
 			$socid=GETPOST('socid');
 			$object->fetch($object->id);
@@ -98,13 +97,13 @@ class Actionschangeinvoicethirdparty
 
 		if (! $error)
 		{
-			$this->results = array('myreturn' => $myvalue);
-			$this->resprints = 'A text to show';
+//			$this->results = array('' => '');
+//			$this->resprints = '';
 			return 0; // or return 1 to replace standard code
 		}
 		else
 		{
-			$this->errors[] = 'Error message';
+			$this->errors[] = 'UnableToChangeThirdParty';
 			return -1;
 		}
 	}
@@ -123,12 +122,18 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$current_context = explode(':', $parameters['context']);
-		if (in_array('invoicecard', $current_context) && $action=='editthirdparty') {
+		$idParamName = null;
+		if (in_array('invoicecard', $current_context)) {
+			$idParamName = 'facid';
+		} elseif (in_array('ordercard', $current_context)) {
+			$idParamName = 'id';
+		}
+		if (!is_null($idParamName) && $action=='editthirdparty') {
 			$form=new Form($db);
 			// Create an array for form
 			$formquestion = array(
 				array('type' => 'other','name' => 'socid','label' => $langs->trans("SelectThirdParty"),'value' => $form->select_company($object->socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3)', 1)));
-			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?facid=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
+			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
 			$this->resprints = $formconfirm;
 			return 0; // or return 1 to replace standard code
 		}
@@ -147,13 +152,25 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$current_context = explode(':', $parameters['context']);
-		if (in_array('invoicecard', $current_context)) {
 
+		/*
+		 * Si on est sur une fiche commande ou facture et que l'utilisateur a le droit `updatethirdparty`,
+		 * on ajoute un bouton
+		 */
+		$idParamName = null;
+		if (in_array('invoicecard', $current_context)) {
+			$idParamName = 'facid';
+		} elseif (in_array('ordercard', $current_context)) {
+			$idParamName = 'id';
+		}
+		if (!is_null($idParamName)) {
+
+			// [2020] -> je me demande si ce chargement de traductions n'est pas obsolète car les traductions utilisées ici sont dans main.lang
 			$langs->load("lead@lead");
 
 			if ($action != 'editthirdparty' && $object->brouillon && $user->rights->changeinvoicethirdparty->updatethirdparty) {
 				//$html = '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/lead/lead/card.php', 1) . '?action=create&socid=' . $object->id . '">' . $langs->trans('LeadCreate') . '</a></div>';
-				$html = '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;facid=' . $object->id . '">' . $langs->trans('SetLinkToAnotherThirdParty') . '</a></div>';
+				$html = '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id . '">' . $langs->trans('SetLinkToAnotherThirdParty') . '</a></div>';
 				$html = str_replace('"', '\"', $html);
 
 				$js= '<script type="text/javascript">'."\n";
