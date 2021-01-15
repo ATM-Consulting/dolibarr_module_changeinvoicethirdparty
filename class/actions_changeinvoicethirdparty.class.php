@@ -61,7 +61,6 @@ class Actionschangeinvoicethirdparty
 	 */
 	function doActions($parameters, &$object, &$action, $hookmanager)
 	{
-
 		global $langs, $conf;
 
 		$error = 0; // Error counter
@@ -69,13 +68,18 @@ class Actionschangeinvoicethirdparty
 		/*print_r($parameters);
 		echo "action: " . $action;
 		print_r($object);*/
-		$current_context = explode(':', $parameters['context']);
-		if ((in_array('invoicecard', $current_context) || in_array('ordercard', $current_context)) && $action=='confirm_editthirdparty')
+		$TContext = explode(':', $parameters['context']);
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		if ($context)
 		{
 			$socid=GETPOST('socid');
 			$object->fetch($object->id);
 			if (!empty($socid)) {
+				// update the object's fk_soc in the database
 				$object->setValueFrom('fk_soc', $socid);
+				// update the loaded object in memory so that we don't have to reload the page again
+				$object->socid = $socid;
+				$object->fetch_thirdparty();
 
 				if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
 				{
@@ -118,24 +122,35 @@ class Actionschangeinvoicethirdparty
 	 * @param HookManager $hookmanager class instance
 	 * @return int Hook status
 	 */
-	function formConfirm($parameters, &$object, &$action, $hookmanager) {
+	function formConfirm($parameters, &$object, &$action, $hookmanager)
+	{
 		global $langs, $conf, $user, $db ,$bc;
 
-		$current_context = explode(':', $parameters['context']);
-		$idParamName = null;
-		if (in_array('invoicecard', $current_context)) {
-			$idParamName = 'facid';
-		} elseif (in_array('ordercard', $current_context)) {
-			$idParamName = 'id';
-		}
-		if (!is_null($idParamName) && $action=='editthirdparty') {
-			$form=new Form($db);
-			// Create an array for form
-			$formquestion = array(
-				array('type' => 'other','name' => 'socid','label' => $langs->trans("SelectThirdParty"),'value' => $form->select_company($object->socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3)', 1)));
-			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
-			$this->resprints = $formconfirm;
-			return 0; // or return 1 to replace standard code
+		$TContext = explode(':', $parameters['context']);
+
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+
+		if ($context) {
+			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
+			if ($context === 'invoicecard') {
+				// invoices are an exception (their ID is referred to as "facid" in the URL)
+				$idParamName = 'facid';
+			}
+			if ($action == 'editthirdparty') {
+				$form = new Form($db);
+				// Create an array to configure the formconfirm dialog box
+				$formquestion = array(
+					array(
+						'type' => 'other',
+						'name' => 'socid',
+						'label' => $langs->trans("SelectThirdParty"),
+						'value' => $form->select_company($object->socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3)', 1)
+					)
+				);
+				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
+				$this->resprints = $formconfirm;
+				return 0; // or return 1 to replace standard code
+			}
 		}
 	}
 
@@ -151,23 +166,20 @@ class Actionschangeinvoicethirdparty
 	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager) {
 		global $langs, $conf, $user, $db ,$bc;
 
-		$current_context = explode(':', $parameters['context']);
+		$TContext = explode(':', $parameters['context']);
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
 
 		/*
-		 * Si on est sur une fiche commande ou facture et que l'utilisateur a le droit `updatethirdparty`,
-		 * on ajoute un bouton
+		 * Si on est sur une fiche commande, facture ou expédition et que l'utilisateur a le droit `updatethirdparty`,
+		 * on ajoute un bouton qui affichera le dialogue de sélection d'un nouveau tiers (cf. $this->formConfirm).
 		 */
-		$idParamName = null;
-		if (in_array('invoicecard', $current_context)) {
-			$idParamName = 'facid';
-		} elseif (in_array('ordercard', $current_context)) {
+		if ($context) {
 			$idParamName = 'id';
-		}
-		if (!is_null($idParamName)) {
+			if ($context === 'invoicecard') {
+				$idParamName = 'facid';
+			}
 
-			// [2020] -> je me demande si ce chargement de traductions n'est pas obsolète car les traductions utilisées ici sont dans main.lang
-			$langs->load("lead@lead");
-
+			// on affiche le bouton seulement si on est en mode "affichage" (pas édition), en brouillon et qu'on a le droit idoine
 			if ($action != 'editthirdparty' && $object->brouillon && $user->rights->changeinvoicethirdparty->updatethirdparty) {
 				//$html = '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/lead/lead/card.php', 1) . '?action=create&socid=' . $object->id . '">' . $langs->trans('LeadCreate') . '</a></div>';
 				$html = '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id . '">' . $langs->trans('SetLinkToAnotherThirdParty') . '</a></div>';
@@ -181,8 +193,21 @@ class Actionschangeinvoicethirdparty
 				$js.= '</script>';
 				print $js;
 			}
-
-
 		}
+	}
+
+	/**
+	 * Returns true if any of the provided contexts to check is in the current context array ($TContext)
+	 *
+	 * @param string[] $TContext Array of current contexts for hooks
+	 * @param string[] $TContextToCheck List of contexts that we want to check
+	 * @return string|null The first checked context that was matched, NULL if we are in none of the desired contexts
+	 */
+	private function _isInContext($TContext, $TContextToCheck)
+	{
+		foreach ($TContextToCheck as $contextToCheck) {
+			if (in_array($contextToCheck, $TContext)) return $contextToCheck;
+		}
+		return null;
 	}
 }
