@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 2.0
+## Version 1.2
  - NEW Permet aussi de changer le tiers d'une expédition.
  - Renomme le module dans l'interface
 
