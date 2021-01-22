@@ -1,10 +1,10 @@
-Module104871Name = Modification client facture
-Module104871Desc = Modification client facture Description
-Permission1048710 = Modification d'un client sur une facture
+Module104871Name = Modification client
+Module104871Desc = Module permettant de modifier le tiers d’une facture, une commande ou une livraison
+Permission1048710 = Modification d'un client sur une facture, une commande ou une livraison
 
 ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
 
-changeinvoicethirdpartySetup = Configuration du module Modification client facture
-changeinvoicethirdpartyAbout = A propos du module Modification client facture
+changeinvoicethirdpartySetup = Configuration du module Modification client
+changeinvoicethirdpartyAbout = A propos du module Modification client
 
-changeinvoicethirdparty=Modification client facture
+changeinvoicethirdparty=Modification client
