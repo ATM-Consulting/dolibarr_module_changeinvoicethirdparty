@@ -180,7 +180,7 @@ class Actionschangeinvoicethirdparty
 			}
 
 			// on affiche le bouton seulement si on est en mode "affichage" (pas édition), en brouillon et qu'on a le droit idoine
-			if ($action != 'editthirdparty' && $object->brouillon && $user->rights->changeinvoicethirdparty->updatethirdparty) {
+			if ($action != 'editthirdparty' && $object->brouillon && $user->hasRight('changeinvoicethirdparty', 'updatethirdparty')) {
 				//$html = '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/lead/lead/card.php', 1) . '?action=create&socid=' . $object->id . '">' . $langs->trans('LeadCreate') . '</a></div>';
 				$html = '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id . '">' . $langs->trans('SetLinkToAnotherThirdParty') . '</a></div>';
 				$html = str_replace('"', '\"', $html);
