@@ -128,23 +128,29 @@ class Actionschangeinvoicethirdparty
 
 		$TContext = explode(':', $parameters['context']);
 
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard'));
 
 		if ($context) {
 			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
-			if ($context === 'invoicecard') {
+			if ($context === 'invoicecard' && intval(DOL_VERSION) < 20) {
 				// invoices are an exception (their ID is referred to as "facid" in the URL)
 				$idParamName = 'facid';
 			}
 			if ($action == 'editthirdparty') {
 				$form = new Form($db);
 				// Create an array to configure the formconfirm dialog box
+
+				$universalFilter = '(s.client:=:1) OR (s.client:=:2) OR (s.client:=:3)';
+				if (intval(DOL_VERSION) < 20) {
+					$universalFilter = '(s.client=1 OR s.client=2 OR s.client=3)';
+				}
+
 				$formquestion = array(
 					array(
 						'type' => 'other',
 						'name' => 'socid',
 						'label' => $langs->trans("SelectThirdParty"),
-						'value' => $form->select_company($object->socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3)', 1)
+						'value' => $form->select_company($object->socid, 'socid', $universalFilter, 1)
 					)
 				);
 				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
@@ -167,7 +173,7 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard'));
 
 		/*
 		 * Si on est sur une fiche commande, facture ou expédition et que l'utilisateur a le droit `updatethirdparty`,
@@ -180,7 +186,7 @@ class Actionschangeinvoicethirdparty
 			}
 
 			$isDraft = false;
-			if(in_array($object->element, ['facture', 'commande', 'shipping'])){
+			if(in_array($object->element, ['facture', 'commande', 'shipping','propal'])){
 				$isDraft = $object->status == $object::STATUS_DRAFT;
 			}
 
