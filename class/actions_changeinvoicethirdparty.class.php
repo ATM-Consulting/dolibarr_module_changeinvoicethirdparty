@@ -200,7 +200,7 @@ class Actionschangeinvoicethirdparty
 
 			// on affiche le bouton seulement si on est en mode "affichage" (pas édition), en brouillon et qu'on a le droit idoine
 
-			if ($action != 'editthirdparty' && $isDraft && $user->hasRight('changeinvoicethirdparty', 'updatethirdparty')) {
+			if ($isDraft && $user->hasRight('changeinvoicethirdparty', 'updatethirdparty')) {
 				$actionUrl = $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id;
 
 				$html = dolGetButtonAction(
@@ -216,7 +216,8 @@ class Actionschangeinvoicethirdparty
 				$js= '<script type="text/javascript">'."\n";
 				$js.= '	$(document).ready('."\n";
 				$js.= '		function () {'."\n";
-				$js.= '			$(".tabsAction").append(' . json_encode($html) . ');'."\n";
+				$js.= '			$(' . json_encode($html) . ').insertBefore($(".tabsAction > .butAction").first());'."\n";
+//				$js.= '			$(".tabsAction").append(' . json_encode($html) . ');'."\n";
 				$js.= '		});'."\n";
 				$js.= '</script>';
 				print $js;
