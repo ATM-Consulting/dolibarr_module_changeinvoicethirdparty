@@ -69,7 +69,7 @@ class Actionschangeinvoicethirdparty
 		echo "action: " . $action;
 		print_r($object);*/
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','supplier_proposalcard','ordersuppliercard'));
 		if ($context && $action == 'confirm_editthirdparty')
 		{
 			$socid=GETPOST('socid');
@@ -85,8 +85,8 @@ class Actionschangeinvoicethirdparty
 				{
 					$outputlangs = $langs;
 					$newlang = '';
-					if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id')) $newlang = GETPOST('lang_id','alpha');
-					if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
+					if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang) && GETPOST('lang_id')) $newlang = GETPOST('lang_id','alpha');
+					if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang))	$newlang = $object->thirdparty->default_lang;
 					if (! empty($newlang)) {
 						$outputlangs = new Translate("", $conf);
 						$outputlangs->setDefaultLang($newlang);
@@ -128,7 +128,7 @@ class Actionschangeinvoicethirdparty
 
 		$TContext = explode(':', $parameters['context']);
 
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard','supplier_proposalcard','ordersuppliercard'));
 
 		if ($context) {
 			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
@@ -144,6 +144,14 @@ class Actionschangeinvoicethirdparty
 				if (intval(DOL_VERSION) < 20) {
 					$universalFilter = '(s.client=1 OR s.client=2 OR s.client=3)';
 				}
+
+				if(in_array($object->element, ['order_supplier','supplier_proposal'])) {
+					$universalFilter = '(s.fournisseur:=:1)';
+					if (intval(DOL_VERSION) < 20) {
+						$universalFilter = '(s.fournisseur=1)';
+					}
+				}
+
 
 				$formquestion = array(
 					array(
@@ -173,7 +181,7 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard','supplier_proposalcard','ordersuppliercard'));
 
 		/*
 		 * Si on est sur une fiche commande, facture ou expédition et que l'utilisateur a le droit `updatethirdparty`,
@@ -186,7 +194,7 @@ class Actionschangeinvoicethirdparty
 			}
 
 			$isDraft = false;
-			if(in_array($object->element, ['facture', 'commande', 'shipping','propal'])){
+			if(in_array($object->element, ['facture', 'commande', 'shipping','propal','order_supplier','supplier_proposal'])) {
 				$isDraft = $object->status == $object::STATUS_DRAFT;
 			}
 
@@ -197,7 +205,7 @@ class Actionschangeinvoicethirdparty
 
 				$html = dolGetButtonAction(
 					$langs->trans('SetLinkToAnotherThirdParty'),
-					'',
+					'<i class="fa fa-people-arrows"></i> '.$langs->trans('SetLinkToAnotherThirdParty'),
 					'default',
 					$actionUrl  ,
 					'changeinvoicethirdpartybtn',

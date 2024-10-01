@@ -96,7 +96,9 @@ class modchangeinvoicethirdparty extends DolibarrModules
 				'invoicecard',
 				'ordercard',
 				'expeditioncard',
-				'propalcard'
+				'propalcard',
+				'supplier_proposalcard',
+				'ordersuppliercard'
 			)
 		);
 
