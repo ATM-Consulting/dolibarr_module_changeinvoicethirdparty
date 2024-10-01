@@ -204,7 +204,7 @@ class Actionschangeinvoicethirdparty
 				$actionUrl = $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id;
 
 				$html = dolGetButtonAction(
-					$langs->trans('SetLinkToAnotherThirdParty'),
+					'',
 					'<i class="fa fa-people-arrows"></i> '.$langs->trans('SetLinkToAnotherThirdParty'),
 					'default',
 					$actionUrl  ,
