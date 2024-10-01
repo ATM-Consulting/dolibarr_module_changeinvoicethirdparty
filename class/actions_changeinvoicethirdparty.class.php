@@ -204,13 +204,13 @@ class Actionschangeinvoicethirdparty
 				$actionUrl = $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id;
 
 				$html = dolGetButtonAction(
-					'',
-					'<i class="fa fa-people-arrows"></i> '.$langs->trans('SetLinkToAnotherThirdParty'),
+					$langs->trans('SetLinkToAnotherThirdParty'),
+					intval(DOL_VERSION) < 20 ? '' : '<i class="fa fa-people-arrows"></i>',
 					'default',
 					$actionUrl  ,
 					'changeinvoicethirdpartybtn',
 					$user->hasRight('changeinvoicethirdparty', 'updatethirdparty'),
-					$params = array()
+					['class' => 'classfortooltip']
 				);
 
 				$js= '<script type="text/javascript">'."\n";
