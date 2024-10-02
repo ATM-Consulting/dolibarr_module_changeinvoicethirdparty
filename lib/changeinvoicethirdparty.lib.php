@@ -49,7 +49,7 @@ function changeinvoicethirdpartyAdminPrepareHead()
     //$this->tabs = array(
     //	'entity:-tabname:Title:@changeinvoicethirdparty:/changeinvoicethirdparty/mypage.php?id=__ID__'
     //); // to remove a tab
-    complete_head_from_modules($conf, $langs, $object, $head, $h, 'changeinvoicethirdparty');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'changeinvoicethirdparty');
 
     return $head;
 }
