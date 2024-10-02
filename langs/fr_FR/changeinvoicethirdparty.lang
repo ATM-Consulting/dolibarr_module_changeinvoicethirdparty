@@ -8,3 +8,5 @@ changeinvoicethirdpartySetup = Configuration du module Modification client
 changeinvoicethirdpartyAbout = A propos du module Modification client
 
 changeinvoicethirdparty=Modification client
+ChangeThirdParty = Modifier le tiers
+CurrentThirdParty = Tiers actuel

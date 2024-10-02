@@ -124,13 +124,14 @@ class Actionschangeinvoicethirdparty
 	 */
 	function formConfirm($parameters, &$object, &$action, $hookmanager)
 	{
-		global $langs, $conf, $user, $db ,$bc;
+		global $langs, $db;
 
 		$TContext = explode(':', $parameters['context']);
 
 		$context = $this->_isInContext($TContext);
 
 		if ($context) {
+			$langs->load("changeinvoicethirdparty@changeinvoicethirdparty");
 			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
 			if ($context === 'invoicecard' && intval(DOL_VERSION) < 20) {
 				// invoices are an exception (their ID is referred to as "facid" in the URL)
@@ -156,12 +157,31 @@ class Actionschangeinvoicethirdparty
 				$formquestion = array(
 					array(
 						'type' => 'other',
+						'name' => 'noname',
+						'label' => $langs->trans("CurrentThirdParty"),
+						'value' => $object->thirdparty->name
+					),
+					array(
+						'type' => 'other',
 						'name' => 'socid',
 						'label' => $langs->trans("SelectThirdParty"),
-						'value' => $form->select_company($object->socid, 'socid', $universalFilter, 1)
+						'value' => $form->select_company(null, 'socid', $universalFilter, 1)
 					)
 				);
-				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
+				$formconfirm = $form->formconfirm(
+					$_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'),
+					$langs->trans('SetLinkToAnotherThirdParty', $object->ref),
+					'confirm_editthirdparty',
+					$formquestion,
+					'yes',
+					1,
+					0, // $height = 0,
+					500, //$width = 500,
+					0, //$disableformtag = 0,
+					'ChangeThirdParty', // $labelbuttonyes = 'Yes',
+					'Cancel' // $labelbuttonno = 'No'
+				);
+
 				$this->resprints = $formconfirm;
 				return 0; // or return 1 to replace standard code
 			}
