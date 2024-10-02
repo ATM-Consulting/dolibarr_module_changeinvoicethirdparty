@@ -69,7 +69,7 @@ class Actionschangeinvoicethirdparty
 		echo "action: " . $action;
 		print_r($object);*/
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'propalcard', 'ordercard', 'expeditioncard','supplier_proposalcard','ordersuppliercard'));
+		$context = $this->_isInContext($TContext);
 		if ($context && $action == 'confirm_editthirdparty')
 		{
 			$socid=GETPOST('socid');
@@ -128,7 +128,7 @@ class Actionschangeinvoicethirdparty
 
 		$TContext = explode(':', $parameters['context']);
 
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard','supplier_proposalcard','ordersuppliercard'));
+		$context = $this->_isInContext($TContext);
 
 		if ($context) {
 			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
@@ -181,7 +181,7 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','propalcard','supplier_proposalcard','ordersuppliercard'));
+		$context = $this->_isInContext($TContext);
 
 		/*
 		 * Si on est sur une fiche commande, facture ou expédition et que l'utilisateur a le droit `updatethirdparty`,
@@ -232,7 +232,7 @@ class Actionschangeinvoicethirdparty
 	 * @param string[] $TContextToCheck List of contexts that we want to check
 	 * @return string|null The first checked context that was matched, NULL if we are in none of the desired contexts
 	 */
-	private function _isInContext($TContext, $TContextToCheck)
+	private function _isInContext($TContext, $TContextToCheck = array('propalcard', 'ordercard' ,'invoicecard', 'expeditioncard', 'supplier_proposalcard', 'ordersuppliercard'))
 	{
 		foreach ($TContextToCheck as $contextToCheck) {
 			if (in_array($contextToCheck, $TContext)) return $contextToCheck;
