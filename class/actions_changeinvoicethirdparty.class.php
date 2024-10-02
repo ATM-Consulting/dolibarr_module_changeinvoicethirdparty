@@ -69,7 +69,7 @@ class Actionschangeinvoicethirdparty
 		echo "action: " . $action;
 		print_r($object);*/
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard','supplier_proposalcard','ordersuppliercard'));
+		$context = $this->_isInContext($TContext, array('invoicecard', 'propalcard', 'ordercard', 'expeditioncard','supplier_proposalcard','ordersuppliercard'));
 		if ($context && $action == 'confirm_editthirdparty')
 		{
 			$socid=GETPOST('socid');
