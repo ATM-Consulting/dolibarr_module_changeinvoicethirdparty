@@ -69,7 +69,7 @@ class Actionschangeinvoicethirdparty
 		echo "action: " . $action;
 		print_r($object);*/
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext);
 		if ($context && $action == 'confirm_editthirdparty')
 		{
 			$socid=GETPOST('socid');
@@ -85,8 +85,8 @@ class Actionschangeinvoicethirdparty
 				{
 					$outputlangs = $langs;
 					$newlang = '';
-					if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id')) $newlang = GETPOST('lang_id','alpha');
-					if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
+					if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang) && GETPOST('lang_id')) $newlang = GETPOST('lang_id','alpha');
+					if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang))	$newlang = $object->thirdparty->default_lang;
 					if (! empty($newlang)) {
 						$outputlangs = new Translate("", $conf);
 						$outputlangs->setDefaultLang($newlang);
@@ -124,30 +124,64 @@ class Actionschangeinvoicethirdparty
 	 */
 	function formConfirm($parameters, &$object, &$action, $hookmanager)
 	{
-		global $langs, $conf, $user, $db ,$bc;
+		global $langs, $db;
 
 		$TContext = explode(':', $parameters['context']);
 
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext);
 
 		if ($context) {
+			$langs->load("changeinvoicethirdparty@changeinvoicethirdparty");
 			$idParamName = 'id'; // almost all document types use the 'id' parameter in the URL
-			if ($context === 'invoicecard') {
+			if ($context === 'invoicecard' && intval(DOL_VERSION) < 20) {
 				// invoices are an exception (their ID is referred to as "facid" in the URL)
 				$idParamName = 'facid';
 			}
 			if ($action == 'editthirdparty') {
 				$form = new Form($db);
 				// Create an array to configure the formconfirm dialog box
+
+				$universalFilter = '(s.client:=:1) OR (s.client:=:2) OR (s.client:=:3)';
+				if (intval(DOL_VERSION) < 20) {
+					$universalFilter = '(s.client=1 OR s.client=2 OR s.client=3)';
+				}
+
+				if(in_array($object->element, ['order_supplier','supplier_proposal'])) {
+					$universalFilter = '(s.fournisseur:=:1)';
+					if (intval(DOL_VERSION) < 20) {
+						$universalFilter = '(s.fournisseur=1)';
+					}
+				}
+
+
 				$formquestion = array(
+					array(
+						'type' => 'other',
+						'name' => 'noname',
+						'label' => $langs->trans("CurrentThirdParty"),
+						'value' => $object->thirdparty->name
+					),
 					array(
 						'type' => 'other',
 						'name' => 'socid',
 						'label' => $langs->trans("SelectThirdParty"),
-						'value' => $form->select_company($object->socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3)', 1)
+						'value' => $form->select_company(null, 'socid', $universalFilter, 1)
 					)
 				);
-				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'), $langs->trans('SetLinkToAnotherThirdParty', $object->ref), 'confirm_editthirdparty', $formquestion, 'yes', 1);
+				$formconfirm = $form->formconfirm(
+					$_SERVER["PHP_SELF"] . '?' . $idParamName . '=' . $object->id, $langs->trans('SetLinkToAnotherThirdParty'),
+					$langs->trans('SetLinkToAnotherThirdParty', $object->ref),
+					'confirm_editthirdparty',
+					$formquestion,
+					'yes',
+					1,
+					0, // $height = 0,
+					500, //$width = 500,
+					0, //$disableformtag = 0,
+					'ChangeThirdParty', // $labelbuttonyes = 'Yes',
+					'Cancel' // $labelbuttonno = 'No'
+				);
+
 				$this->resprints = $formconfirm;
 				return 0; // or return 1 to replace standard code
 			}
@@ -167,7 +201,7 @@ class Actionschangeinvoicethirdparty
 		global $langs, $conf, $user, $db ,$bc;
 
 		$TContext = explode(':', $parameters['context']);
-		$context = $this->_isInContext($TContext, array('invoicecard', 'ordercard', 'expeditioncard'));
+		$context = $this->_isInContext($TContext);
 
 		/*
 		 * Si on est sur une fiche commande, facture ou expédition et que l'utilisateur a le droit `updatethirdparty`,
@@ -179,16 +213,31 @@ class Actionschangeinvoicethirdparty
 				$idParamName = 'facid';
 			}
 
+			$isDraft = false;
+			if(in_array($object->element, ['facture', 'commande', 'shipping','propal','order_supplier','supplier_proposal'])) {
+				$isDraft = $object->status == $object::STATUS_DRAFT;
+			}
+
 			// on affiche le bouton seulement si on est en mode "affichage" (pas édition), en brouillon et qu'on a le droit idoine
-			if ($action != 'editthirdparty' && $object->brouillon && $user->rights->changeinvoicethirdparty->updatethirdparty) {
-				//$html = '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/lead/lead/card.php', 1) . '?action=create&socid=' . $object->id . '">' . $langs->trans('LeadCreate') . '</a></div>';
-				$html = '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id . '">' . $langs->trans('SetLinkToAnotherThirdParty') . '</a></div>';
-				$html = str_replace('"', '\"', $html);
+
+			if ($isDraft && $user->hasRight('changeinvoicethirdparty', 'updatethirdparty')) {
+				$actionUrl = $_SERVER["PHP_SELF"] . '?action=editthirdparty&amp;' . $idParamName . '=' . $object->id;
+
+				$html = dolGetButtonAction(
+					$langs->trans('SetLinkToAnotherThirdParty'),
+					intval(DOL_VERSION) < 20 ? '' : '<i class="fa fa-people-arrows"></i>',
+					'default',
+					$actionUrl  ,
+					'changeinvoicethirdpartybtn',
+					$user->hasRight('changeinvoicethirdparty', 'updatethirdparty'),
+					['class' => 'classfortooltip']
+				);
 
 				$js= '<script type="text/javascript">'."\n";
 				$js.= '	$(document).ready('."\n";
 				$js.= '		function () {'."\n";
-				$js.= '			$(".tabsAction").append("' . $html . '");'."\n";
+				$js.= '			$(' . json_encode($html) . ').insertBefore($(".tabsAction > .butAction").first());'."\n";
+//				$js.= '			$(".tabsAction").append(' . json_encode($html) . ');'."\n";
 				$js.= '		});'."\n";
 				$js.= '</script>';
 				print $js;
@@ -203,7 +252,7 @@ class Actionschangeinvoicethirdparty
 	 * @param string[] $TContextToCheck List of contexts that we want to check
 	 * @return string|null The first checked context that was matched, NULL if we are in none of the desired contexts
 	 */
-	private function _isInContext($TContext, $TContextToCheck)
+	private function _isInContext($TContext, $TContextToCheck = array('propalcard', 'ordercard' ,'invoicecard', 'expeditioncard', 'supplier_proposalcard', 'ordersuppliercard'))
 	{
 		foreach ($TContextToCheck as $contextToCheck) {
 			if (in_array($contextToCheck, $TContext)) return $contextToCheck;

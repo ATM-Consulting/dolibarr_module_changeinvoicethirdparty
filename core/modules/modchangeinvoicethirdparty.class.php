@@ -53,13 +53,13 @@ class modchangeinvoicethirdparty extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "ATM";
+		$this->family = "other";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module changeinvoicethirdparty";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.2';
+		$this->version = '1.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -67,7 +67,7 @@ class modchangeinvoicethirdparty extends DolibarrModules
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='changeinvoicethirdparty@changeinvoicethirdparty';
+		$this->picto='changeinvoicethirdparty.svg@changeinvoicethirdparty';
 
 		$this->editor_name = 'ATM Consulting';
 		$this->editor_url = 'https://www.atm-consulting.fr';
@@ -91,16 +91,23 @@ class modchangeinvoicethirdparty extends DolibarrModules
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@changeinvoicethirdparty')) // Set here all workflow context managed by module
 		//                        );
-				$this->module_parts = array(
-					'hooks' => array('invoicecard', 'ordercard', 'expeditioncard')
-				);
+		$this->module_parts = array(
+			'hooks' => array(
+				'invoicecard',
+				'ordercard',
+				'expeditioncard',
+				'propalcard',
+				'supplier_proposalcard',
+				'ordersuppliercard'
+			)
+		);
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/changeinvoicethirdparty/temp");
 		$this->dirs = array();
 
 		// Config pages. Put here list of php page, stored into changeinvoicethirdparty/admin directory, to use to setup module.
-		$this->config_page_url = array("changeinvoicethirdparty_setup.php@changeinvoicethirdparty");
+		$this->config_page_url = array(); // "changeinvoicethirdparty_setup.php@changeinvoicethirdparty"
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module

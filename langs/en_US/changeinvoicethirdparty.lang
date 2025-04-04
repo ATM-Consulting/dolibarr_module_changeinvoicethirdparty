@@ -8,3 +8,5 @@ changeinvoicethirdpartySetup = Change third party module setup
 changeinvoicethirdpartyAbout = About Change third party
 
 changeinvoicethirdparty=Change third party
+ChangeThirdPartyTo = Change third party
+CurrentThirdParty = Current third party
