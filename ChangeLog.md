@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-### 🆕 Version *1.3* – **04/04/2025**
+## Version 1.3 – **04/04/2025**
 
 - 🔧 **Amélioration de l'interface :**  
   - Réduction de la taille du bouton pour une meilleure harmonie visuelle. *1.3.0* – **04/04/2025**   
